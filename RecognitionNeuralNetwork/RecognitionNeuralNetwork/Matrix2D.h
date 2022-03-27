@@ -17,28 +17,31 @@ public:
 	Matrix2D(int _nrows, int _ncols, ModeOfMaterixInit _mode);
 
 	//Table's constructor
-	Matrix2D(std::vector<std::vector<double>>& matrixTable);
+	Matrix2D(std::vector<std::vector<Type>>& _matrixTable);
+
+	//Vector's constructor
+	Matrix2D(std::vector<Type>& _vectorToConvert);
 
 	//Getter for number of rows
 	int getRowsNumber();
 
 	//Getter for pointer to certain row
-	std::vector<double>* getRow(int _rowNumber);
+	std::vector<Type>* getRow(int _rowNumber);
 
 	//Performing normalization
 	void normalize();
 
 	//Getter for transposed matrix
-	Matrix2D getTransposedMatrix();
+	Matrix2D<Type> getTransposedMatrix();
 
 	//Adding operator overloaded
-	Matrix2D operator+(Matrix2D _matrixToBeAdded);
+	template <typename Type2> Matrix2D<Type> operator+(Matrix2D<Type2> _matrixToBeAdded);
 
 	//Subtracting operator overloaded
-	Matrix2D operator-(Matrix2D _matrixToSubstracted);
+	template <typename Type2> Matrix2D<Type> operator-(Matrix2D<Type2> _matrixToSubstracted);
 
-	//Multiplaying operator overloaded (by scallar)
-	template <typename Type2> Matrix2D operator*(Type2 _value);
+	//Multiplying operator overloaded (by another matrix)
+	template <typename Type2> Matrix2D<Type> operator*(Matrix2D<Type2> _matrixToByMultiplyed);
 
 	//Printing matrix to standard cout
 	void printMatrix();

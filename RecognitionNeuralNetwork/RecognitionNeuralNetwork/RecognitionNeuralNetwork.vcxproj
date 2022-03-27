@@ -140,11 +140,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Matrix2D.tpp" />
+    <ClCompile Include="Matrix2D.cpp" />
     <ClCompile Include="NeuralNetwork.cpp" />
+    <ClCompile Include="VectorOperands.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Matrix2D.h" />
+    <ClInclude Include="VectorOperands.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

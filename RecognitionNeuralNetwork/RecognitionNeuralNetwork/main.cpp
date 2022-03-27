@@ -1,15 +1,21 @@
-#include <iostream>
-#include <vector>
 #include <algorithm>
-#include <random>
-#include <math.h>
 #include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <chrono>
 #include <streambuf>
 
-#include "Matrix2D.tpp"
+#include "Matrix2D.cpp"
+#include "VectorOperands.cpp"
+
+template <typename inputType> std::size_t getNumberOfMaxOfVector(std::vector<inputType>& _vec) {
+	size_t maxValNr = 0;
+	for (int i = 1; i < _vec.size(); ++i) {
+		if (_vec.at(maxValNr) < _vec.at(i)) maxValNr = i;
+	}
+	return maxValNr;
+}
+
 
 std::vector<double> matrixByVectorMultiplication(Matrix2D<double>& _inputMatrix, std::vector<double>& _inputVector) {
 	std::vector<double> newVector;
@@ -21,14 +27,6 @@ std::vector<double> matrixByVectorMultiplication(Matrix2D<double>& _inputMatrix,
 		newVector.push_back(outcome);
 	}
 	return newVector;
-}
-
-template <typename inputType> std::size_t getNumberOfMaxOfVector(std::vector<inputType>& _vec) {
-	size_t maxValNr = 0;
-	for (int i = 1; i < _vec.size(); ++i) {
-		if (_vec.at(maxValNr) < _vec.at(i)) maxValNr = i;
-	}
-	return maxValNr;
 }
 
 std::vector<double> vectorToVectorAdding(std::vector<double> _inputVector, std::vector<double>& _inputVector2) {
@@ -65,6 +63,7 @@ Matrix2D<double> getMatrixFromVextorMultiplying(std::vector<double>& _inputVecto
 	return newMatrix;
 }
 
+/*
 class NeuralNetwork {
 	std::vector<int> layerSizes;
 	std::vector<std::pair<int, int>> weightShapes;
@@ -105,7 +104,7 @@ public:
 		std::for_each(weightShapes.begin(), weightShapes.end(), [&](std::pair<int, int>& wS) {
 			auto tempMat = Matrix2D<double>(wS.first, wS.second, ModeOfMaterixInit::RANDOM);
 			tempMat.normalize();
-			weights.push_back(tempMat); 
+			weights.push_back(tempMat);
 		});
 
 	}
@@ -172,7 +171,7 @@ public:
 			}
 		}
 		std::for_each(weightShapes.begin(), weightShapes.end(), [&](std::pair<int, int>& wS) {
-			newWeights.push_back(Matrix2D<double>(wS.first, wS.second, ModeOfMaterixInit::ZEROS)); 
+			newWeights.push_back(Matrix2D<double>(wS.first, wS.second, ModeOfMaterixInit::ZEROS));
 		});
 		std::for_each(miniBatch.begin(), miniBatch.end(), [&](std::pair<std::vector<double>, std::vector<int>> &pair) {
 			auto result = backpropagation(pair.first, pair.second);
@@ -216,6 +215,202 @@ public:
 			for (int j = 0; j < testData.size(); ++j) {
 				std::vector<double> prediction = predict(testData.at(j).first);
 				if (getNumberOfMaxOfVector<double>(prediction) == getNumberOfMaxOfVector<int>(testData.at(j).second)) ++nrOfCorrectGuesses;
+			}
+			auto prec = nrOfCorrectGuesses * 100.0 / testData.size();
+			//testPrintMatrixes();
+			std::cout << "\n" << prec << "% of precision\n";
+		}
+	}
+	//tests
+
+	void testPrintWeightShapes() {
+		std::for_each(weightShapes.begin(), weightShapes.end(), [](std::pair<int, int>& wS) {std::cout << "(" << wS.first << ", " << wS.second << ") "; });
+		std::cout << std::endl;
+	}
+
+	void testPrintMatrixes() {
+		std::for_each(weights.begin(), weights.end(), [](Matrix2D<double>& mat) {mat.printMatrix(); std::cout << std::endl; });
+	}
+
+	void testPrintBiases() {
+		std::for_each(biases.begin(), biases.end(), [](std::vector<double>& b) {std::for_each(b.begin(), b.end(), [](double& d) {std::cout << d << "\n"; }); std::cout << std::endl; });
+	}
+};
+*/
+class NeuralNetwork {
+	std::vector<int> layerSizes;
+	std::vector<std::pair<int, int>> weightShapes;
+	std::vector<Matrix2D<double>> weights;
+	std::vector<std::vector<double>> biases;
+
+	double sygmoidFn(double val) {
+		return 1.0 / (1.0 + std::exp(-1 * val));
+	}
+
+	double sygmoidPrimeFn(double val) {
+		return sygmoidFn(val) * (1.0 - sygmoidFn(val));
+	}
+
+	void activation(std::vector<double>& _inputVector) {
+		std::for_each(_inputVector.begin(), _inputVector.end(), [this](double& val) {val = this->sygmoidFn(val); });
+	}
+
+	void reversActivation(std::vector<double>& _inputVector) {
+		std::for_each(_inputVector.begin(), _inputVector.end(), [this](double& val) {val = this->sygmoidPrimeFn(val); });
+	}
+
+public:
+
+	NeuralNetwork(std::vector<int> _layerSizes) {
+
+		//Added lately
+		layerSizes = _layerSizes;
+
+		for (int i = 0; i < _layerSizes.size() - 1; ++i) {
+			weightShapes.push_back(std::pair<int, int>(_layerSizes.at(i + 1), _layerSizes.at(i)));
+			biases.push_back(std::vector<double>());
+			for (int j = 0; j < _layerSizes.at(i + 1); ++j) {
+				biases.back().push_back(0);
+			}
+		}
+
+		std::for_each(weightShapes.begin(), weightShapes.end(), [&](std::pair<int, int>& wS) {
+			auto tempMat = Matrix2D<double>(wS.first, wS.second, ModeOfMaterixInit::RANDOM);
+			tempMat.normalize();
+			weights.push_back(tempMat);
+			});
+
+	}
+
+	std::vector<Matrix2D<double>> getWeights() {
+		return weights;
+	}
+
+	std::vector<double> predict(std::vector<double> _inputVector) {
+		std::vector<double> outputVector = _inputVector;
+		for (int i = 0; i < weights.size(); ++i) {
+			//
+			outputVector = vectorToVectorAdding(matrixByVectorMultiplication(weights.at(i), outputVector), biases.at(i));
+			//
+			activation(outputVector);
+		}
+		return outputVector;
+	}
+
+	std::pair< std::vector<std::vector<double>>, std::vector<Matrix2D<double>>> backpropagation(std::vector<double>& _inputVector,
+		std::vector<int>& _inputVector2) {
+		std::vector<std::vector<double>> newBiases;
+		std::vector<Matrix2D<double>> newWeights;
+		std::vector<double> activationVector = _inputVector;
+		std::vector<std::vector<double>> activationsVectors, zVectros;
+		activationsVectors.push_back(activationVector);
+		for (int i = 0; i < layerSizes.size() - 1; ++i) {
+			newBiases.push_back(std::vector<double>());
+			for (int j = 0; j < layerSizes.at(i + 1); ++j) {
+				newBiases.back().push_back(0);
+			}
+		}
+		std::for_each(weightShapes.begin(), weightShapes.end(), [&](std::pair<int, int>& wS) {newWeights.push_back(Matrix2D<double>(wS.first, wS.second, ModeOfMaterixInit::ZEROS)); });
+		for (int i = 0; i < weights.size(); ++i) {
+			//
+			auto z = vectorToVectorAdding(matrixByVectorMultiplication(weights.at(i), activationVector), biases.at(i));
+			//
+			zVectros.push_back(z);
+			activation(z);
+			activationVector = z;
+			activationsVectors.push_back(activationVector);
+		}
+		reversActivation(zVectros.back());
+		//
+		auto delta = vectorByVectorMultiplyingElementWise(vectorFromVectorSubtrackting<int>(activationsVectors.back(), _inputVector2),
+			zVectros.back());
+		//
+		newBiases.back() = delta;
+		//
+		newWeights.back() = getMatrixFromVextorMultiplying(delta, activationsVectors.at(activationsVectors.size() - 2));
+		//
+		for (int i = 2; i < layerSizes.size(); i++) {
+			auto v = zVectros.at(zVectros.size() - i);
+			reversActivation(v);
+			auto tempMat = weights.at(weights.size() - i + 1).getTransposedMatrix();
+			//
+			delta = vectorByVectorMultiplyingElementWise(matrixByVectorMultiplication(tempMat, delta), v);
+			//
+			newBiases.at(newBiases.size() - i) = delta;
+			//
+			newWeights.at(newWeights.size() - i) = getMatrixFromVextorMultiplying(delta,
+				activationsVectors.at(activationsVectors.size() - i - 1));
+			//
+		}
+		return { newBiases, newWeights };
+	}
+
+	void updateMiniBatch(std::vector<std::pair<std::vector<double>, std::vector<int>>> miniBatch, double eta) {
+		std::vector<std::vector<double>> newBiases;
+		std::vector<Matrix2D<double>> newWeights;
+		for (int i = 0; i < layerSizes.size() - 1; ++i) {
+			newBiases.push_back(std::vector<double>());
+			for (int j = 0; j < layerSizes.at(i + 1); ++j) {
+				newBiases.back().push_back(0);
+			}
+		}
+		std::for_each(weightShapes.begin(), weightShapes.end(), [&](std::pair<int, int>& wS) {
+			newWeights.push_back(Matrix2D<double>(wS.first, wS.second, ModeOfMaterixInit::ZEROS));
+			});
+		std::for_each(miniBatch.begin(), miniBatch.end(), [&](std::pair<std::vector<double>, std::vector<int>>& pair) {
+			auto result = backpropagation(pair.first, pair.second);
+			for (int i = 0; i < newBiases.size(); ++i) {
+				//
+				newBiases.at(i) = newBiases.at(i) + result.first.at(i);
+				//newBiases.at(i) = vectorToVectorAdding(newBiases.at(i), result.first.at(i));
+				//
+				newWeights.at(i) = newWeights.at(i) + result.second.at(i);
+			}
+			for (int i = 0; i < newBiases.size(); ++i) {
+				weights.at(i) = weights.at(i) - newWeights.at(i) > (eta / miniBatch.size());
+				//
+				biases.at(i) = biases.at(i) - (newBiases.at(i) * (eta / miniBatch.size()));
+				//
+			/*	biases.at(i) = vectorFromVectorSubtrackting<double>(biases.at(i),
+				vectorByValueMultiplying(newBiases.at(i), eta / miniBatch.size()));*/
+				//
+			}
+			});
+	}
+
+	void SGD(std::vector<std::pair<std::vector<double>, std::vector<int>>>& trainingData, int epochs, int miniBatchSize,
+		double eta, std::vector<std::pair<std::vector<double>, std::vector<int>>>& testData) {
+		//auto newEta = eta;
+		for (int i = 0; i < epochs; ++i) {
+			//newEta = 2 * eta * (1 - prec / 100);
+			std::random_shuffle(trainingData.begin(), trainingData.end());
+			//system("PAUSE");
+			//std::cout << "Data shuffeled\n";
+			int n = trainingData.size();
+			std::vector<std::vector<std::pair<std::vector<double>, std::vector<int>>>> miniBatches;
+			//system("PAUSE");
+			//std::cout << "Proceed to divide into minibatches\n";
+			for (int j = 0; j < trainingData.size(); j += miniBatchSize) {
+				miniBatches.push_back({ trainingData.begin() + j, trainingData.begin() + j + miniBatchSize - 1 >= trainingData.end() ? trainingData.end() : trainingData.begin() + j + miniBatchSize - 1 });
+			}
+			//system("PAUSE");
+			//std::cout << "Divited into minibatches\n";
+			for (int j = 0; j < miniBatches.size(); ++j) {
+				updateMiniBatch(miniBatches.at(j), eta);
+				//	std::cout << "Mini batch nr " << j + 1 << " out of " << miniBatches.size() << " updated\n";
+			}
+			//system("PAUSE");
+			//std::cout << "All mini batches updated\n";
+			//
+		/*	for (Matrix2D<double>& w : weights) {
+				w.normalize();
+			}*/
+			//
+			std::cout << "Epoch " << i + 1 << " out of " << epochs << " completed.\n";
+			std::size_t nrOfCorrectGuesses = 0;
+			for (int j = 0; j < testData.size(); ++j) {
+				std::vector<double> prediction = predict(testData.at(j).first);
+				if (getNumberOfMaxOfVector(prediction) == getNumberOfMaxOfVector(testData.at(j).second)) ++nrOfCorrectGuesses;
 			}
 			auto prec = nrOfCorrectGuesses * 100.0 / testData.size();
 			//testPrintMatrixes();
@@ -431,7 +626,7 @@ int main() {
 		traningDataSet.begin() + 500 };
 	system("PAUSE");*/
 
-	/*NeuralNetwork network({2, 2, 1});
+	/*NeuralNetwork network({2, 3, 2});
 	std::random_device device;
 	std::mt19937 generator(device());
 	std::normal_distribution<double> distribution(0, 1);
@@ -444,27 +639,25 @@ int main() {
 			val = abs(val / sqrt(pow(x,2) + pow(y,2)));
 		});
 		std::vector<int> vec2;
-		if (vec.at(0) / vec.at(1) < 1)  vec2.push_back(1);
-		else vec2.push_back(0);
+		if (vec.at(0) / vec.at(1) < 1) {
+			vec2.push_back(1);
+			vec2.push_back(0);
+		}
+		else {
+			vec2.push_back(0);
+			vec2.push_back(1);
+		}
 		std::pair<std::vector<double>, std::vector<int>> pair = { vec, vec2 };
 		data.push_back(pair);
 	}
 	std::vector<std::pair<std::vector<double>, std::vector<int>>> trainingData = 
-	{ data.begin(), data.begin() + 4000 }, testData = {data.begin() + 4000, data.end()};
-		system("PAUSE");
-	network.SGD(trainingData, 100, 100, 30, testData);
+	{data.begin(), data.begin() + 4000 }, testData = {data.begin() + 4000, data.end()};
 	system("PAUSE");
-	while (true) {
-		double newX, newY;
-		std::cout << "Podaj X: ";
-		std::cin >> newX;
-		std::cout << " Podaj Y: ";
-		std::cin >> newY;
-		std::cout << "The response is:" << network.predict({ newX, newY }).at(0);
-		if (network.predict({ newX, newY }).at(0) - (newX / newY < 1 ? 1 : 0) < 0.1)
-			std::cout << "\nGuessed correctly\n";
-		else std::cout << "\nFailed to guess\n";
-	}*/
+	std::for_each(trainingData.begin(), trainingData.end(), [](std::pair<std::vector<double>, std::vector<int>> &pair) {
+		std::cout << "X: " << pair.first.at(0) << ", Y: " << pair.first.at(1) << " is " << pair.second.at(0) << "\n";
+	});
+	system("PAUSE");
+	network.SGD(trainingData, 100, 100, 0.3, testData);*/
 
 	auto data = readDataByBytes<int>("outputData.byte");
 	auto data2 = readDataByBytes<double>("inputData.byte");
@@ -474,8 +667,19 @@ int main() {
 	std::random_shuffle(dataSet.begin(), dataSet.end());
 	std::vector<std::pair<std::vector<double>, std::vector<int>>> trainingSet =
 	{ dataSet.begin(), dataSet.begin() + 490 }, testSet = { dataSet.begin() + 490, dataSet.begin() + 500 };
-	NeuralNetwork net({ 784, 45, 10 });
+	NeuralNetwork net({ 784, 15, 10 });
 	net.SGD(trainingSet, 30, 10, 0.1, testSet);
+
+	//std::vector<double> vec = {8, 7, 23, 8, 9};
+	//std::vector<std::vector<double>> table = { {4, 2} }, table2 = { {7, 11} };
+	//Matrix2D<double> mat1(table), mat2(table2), mat3(vec);
+	//auto newMat = mat1.getTransposedMatrix() * mat3;
+	//std::vector<Matrix2D<double>> mats = { mat1, mat2, mat3, newMat };
+	//for (auto mat : mats) {
+	//	mat.printMatrix();
+	//	std::cout << "\n";
+	//}
+
 	//int index = 1;
 	//std::string name = "weightsLayer";
 	//for (auto mat : net.getWeights()) {

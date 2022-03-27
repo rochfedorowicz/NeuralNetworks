@@ -21,12 +21,18 @@
     <ClCompile Include="NeuralNetwork.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="Matrix2D.tpp">
+    <ClCompile Include="Matrix2D.cpp">
       <Filter>Pliki nagłówkowe</Filter>
+    </ClCompile>
+    <ClCompile Include="VectorOperands.cpp">
+      <Filter>Pliki źródłowe</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Matrix2D.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="VectorOperands.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>
