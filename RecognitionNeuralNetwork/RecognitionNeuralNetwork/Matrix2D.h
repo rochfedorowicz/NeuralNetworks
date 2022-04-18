@@ -26,7 +26,10 @@ public:
 	int getRowsNumber();
 
 	//Getter for pointer to certain row
-	std::vector<Type>* getRow(int _rowNumber);
+	std::vector<Type>* getRowPtr(int _rowNumber);
+
+	//Getter for vector from matrix
+	std::vector<Type>* getVectorPtr();
 
 	//Performing normalization
 	void normalize();

@@ -16,13 +16,13 @@ template <typename inputType> std::size_t getNumberOfMaxOfVector(std::vector<inp
 	return maxValNr;
 }
 
-
+/*
 std::vector<double> matrixByVectorMultiplication(Matrix2D<double>& _inputMatrix, std::vector<double>& _inputVector) {
 	std::vector<double> newVector;
 	for (int i = 0; i < _inputMatrix.getRowsNumber(); ++i) {
 		double outcome = 0;
-		for (int j = 0; j < _inputMatrix.getRow(i)->size(); ++j) {
-			outcome += _inputMatrix.getRow(i)->at(j) * _inputVector.at(j);
+		for (int j = 0; j < _inputMatrix.getRowPtr(i)->size(); ++j) {
+			outcome += _inputMatrix.getRowPtr(i)->at(j) * _inputVector.at(j);
 		}
 		newVector.push_back(outcome);
 	}
@@ -57,12 +57,12 @@ Matrix2D<double> getMatrixFromVextorMultiplying(std::vector<double>& _inputVecto
 	Matrix2D<double> newMatrix(_inputVector.size(), _inputVector2.size(), ModeOfMaterixInit::ZEROS);
 	for (int i = 0; i < _inputVector.size(); ++i) {
 		for (int j = 0; j < _inputVector2.size(); ++j) {
-			newMatrix.getRow(i)->at(j) = _inputVector.at(i) * _inputVector2.at(j);
+			newMatrix.getRowPtr(i)->at(j) = _inputVector.at(i) * _inputVector2.at(j);
 		}
 	}
 	return newMatrix;
 }
-
+*/
 /*
 class NeuralNetwork {
 	std::vector<int> layerSizes;
@@ -290,7 +290,8 @@ public:
 		std::vector<double> outputVector = _inputVector;
 		for (int i = 0; i < weights.size(); ++i) {
 			//
-			outputVector = vectorToVectorAdding(matrixByVectorMultiplication(weights.at(i), outputVector), biases.at(i));
+			outputVector = *(outputVector * weights.at(i).getTransposedMatrix()).getVectorPtr() + biases.at(i);
+			//outputVector = vectorToVectorAdding(matrixByVectorMultiplication(weights.at(i), outputVector), biases.at(i));
 			//
 			activation(outputVector);
 		}
@@ -313,7 +314,10 @@ public:
 		std::for_each(weightShapes.begin(), weightShapes.end(), [&](std::pair<int, int>& wS) {newWeights.push_back(Matrix2D<double>(wS.first, wS.second, ModeOfMaterixInit::ZEROS)); });
 		for (int i = 0; i < weights.size(); ++i) {
 			//
-			auto z = vectorToVectorAdding(matrixByVectorMultiplication(weights.at(i), activationVector), biases.at(i));
+			//std::cout << activationVector.size() << " " << weights.at(i).getRowsNumber() << " " << weights.at(i).getRow(0)->size();
+			//system("PAUSE");
+			auto z = *(activationVector * weights.at(i).getTransposedMatrix()).getVectorPtr() + biases.at(i);
+			/*auto z = vectorToVectorAdding(matrixByVectorMultiplication(weights.at(i), activationVector), biases.at(i));*/
 			//
 			zVectros.push_back(z);
 			activation(z);
@@ -322,24 +326,29 @@ public:
 		}
 		reversActivation(zVectros.back());
 		//
-		auto delta = vectorByVectorMultiplyingElementWise(vectorFromVectorSubtrackting<int>(activationsVectors.back(), _inputVector2),
-			zVectros.back());
+		auto delta = (activationsVectors.back() - _inputVector2) ^ zVectros.back(); 
+		/*auto delta = vectorByVectorMultiplyingElementWise(vectorFromVectorSubtrackting<int>(activationsVectors.back(), _inputVector2),
+			zVectros.back());*/
 		//
 		newBiases.back() = delta;
 		//
-		newWeights.back() = getMatrixFromVextorMultiplying(delta, activationsVectors.at(activationsVectors.size() - 2));
+		newWeights.back() = getTransposedVector(delta) * activationsVectors.at(activationsVectors.size() - 2);
+		/*newWeights.back() = getMatrixFromVextorMultiplying(delta, activationsVectors.at(activationsVectors.size() - 2));*/
 		//
 		for (int i = 2; i < layerSizes.size(); i++) {
 			auto v = zVectros.at(zVectros.size() - i);
 			reversActivation(v);
-			auto tempMat = weights.at(weights.size() - i + 1).getTransposedMatrix();
 			//
-			delta = vectorByVectorMultiplyingElementWise(matrixByVectorMultiplication(tempMat, delta), v);
+			delta = v ^ *(delta * weights.at(weights.size() - i + 1)).getRowPtr(0);
+			/*
+			
+			*/
 			//
 			newBiases.at(newBiases.size() - i) = delta;
 			//
-			newWeights.at(newWeights.size() - i) = getMatrixFromVextorMultiplying(delta,
-				activationsVectors.at(activationsVectors.size() - i - 1));
+			newWeights.at(newWeights.size() - i) = getTransposedVector(delta) * activationsVectors.at(activationsVectors.size() - i - 1); 
+			/*newWeights.at(newWeights.size() - i) = getMatrixFromVextorMultiplying(delta,
+				activationsVectors.at(activationsVectors.size() - i - 1));*/
 			//
 		}
 		return { newBiases, newWeights };

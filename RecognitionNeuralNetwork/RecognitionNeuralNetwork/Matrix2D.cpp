@@ -42,8 +42,13 @@ int Matrix2D<Type>::getRowsNumber() {
 }
 
 template <typename Type>
-std::vector<Type>* Matrix2D<Type>::getRow(int _rowNumber) {
+std::vector<Type>* Matrix2D<Type>::getRowPtr(int _rowNumber) {
 	return  &matrixTable.at(_rowNumber);
+}
+
+template <typename Type>
+std::vector<Type>* Matrix2D<Type>::getVectorPtr() {
+	return  &matrixTable.at(0);
 }
 
 template <typename Type> 
@@ -64,7 +69,7 @@ Matrix2D<Type> Matrix2D<Type>::getTransposedMatrix() {
 	Matrix2D newMatrix(matrixTable.at(0).size(), matrixTable.size(), ModeOfMaterixInit::ZEROS);
 	for (int i = 0; i < matrixTable.at(0).size(); ++i) {
 		for (int j = 0; j < matrixTable.size(); ++j) {
-			newMatrix.getRow(i)->at(j) = matrixTable.at(j).at(i);
+			newMatrix.getRowPtr(i)->at(j) = matrixTable.at(j).at(i);
 		}
 	}
 	return newMatrix;
@@ -73,11 +78,11 @@ Matrix2D<Type> Matrix2D<Type>::getTransposedMatrix() {
 template <typename Type> template <typename Type2>
 Matrix2D<Type> Matrix2D<Type>::operator+(Matrix2D<Type2> _matrixToBeAdded) {
 	if (this->getRowsNumber() == _matrixToBeAdded.getRowsNumber()
-		&& this->getRow(0)->size() == _matrixToBeAdded.getRow(0)->size()) {
+		&& this->getRowPtr(0)->size() == _matrixToBeAdded.getRowPtr(0)->size()) {
 		Matrix2D newMatrix(matrixTable.size(), matrixTable.at(0).size(), ModeOfMaterixInit::ZEROS);
 		for (int i = 0; i < matrixTable.size(); ++i) {
 			for (int j = 0; j < matrixTable.at(i).size(); ++j) {
-				newMatrix.getRow(i)->at(j) = this->getRow(i)->at(j) + _matrixToBeAdded.getRow(i)->at(j);
+				newMatrix.getRowPtr(i)->at(j) = this->getRowPtr(i)->at(j) + _matrixToBeAdded.getRowPtr(i)->at(j);
 			}
 		}
 		return newMatrix;
@@ -88,11 +93,11 @@ Matrix2D<Type> Matrix2D<Type>::operator+(Matrix2D<Type2> _matrixToBeAdded) {
 template <typename Type> template <typename Type2>
 Matrix2D<Type> Matrix2D<Type>::operator-(Matrix2D<Type2> matrixToSubstracted) {
 	if (this->getRowsNumber() == matrixToSubstracted.getRowsNumber()
-		&& this->getRow(0)->size() == matrixToSubstracted.getRow(0)->size()) {
+		&& this->getRowPtr(0)->size() == matrixToSubstracted.getRowPtr(0)->size()) {
 		Matrix2D newMatrix(matrixTable.size(), matrixTable.at(0).size(), ModeOfMaterixInit::ZEROS);
 		for (int i = 0; i < matrixTable.size(); ++i) {
 			for (int j = 0; j < matrixTable.at(i).size(); ++j) {
-				newMatrix.getRow(i)->at(j) = this->getRow(i)->at(j) - matrixToSubstracted.getRow(i)->at(j);
+				newMatrix.getRowPtr(i)->at(j) = this->getRowPtr(i)->at(j) - matrixToSubstracted.getRowPtr(i)->at(j);
 			}
 		}
 		return newMatrix;
@@ -102,15 +107,15 @@ Matrix2D<Type> Matrix2D<Type>::operator-(Matrix2D<Type2> matrixToSubstracted) {
 
 template <typename Type> template <typename Type2>
 Matrix2D<Type> Matrix2D<Type>::operator*(Matrix2D<Type2> _matrixToByMultiplyed) {
-	if (this->getRow(0)->size() == _matrixToByMultiplyed.getRowsNumber()) {
-		Matrix2D newMatrix(this->getRowsNumber(), _matrixToByMultiplyed.getRow(0)->size(), ModeOfMaterixInit::ZEROS);
+	if (this->getRowPtr(0)->size() == _matrixToByMultiplyed.getRowsNumber()) {
+		Matrix2D newMatrix(this->getRowsNumber(), _matrixToByMultiplyed.getRowPtr(0)->size(), ModeOfMaterixInit::ZEROS);
 		for (int i = 0; i < matrixTable.size(); ++i) {
-			for (int j = 0; j < _matrixToByMultiplyed.getRow(0)->size(); ++j) {
+			for (int j = 0; j < _matrixToByMultiplyed.getRowPtr(0)->size(); ++j) {
 				Type sum = 0;
 				for (int k = 0; k < _matrixToByMultiplyed.getRowsNumber(); ++k) {
-					sum += matrixTable.at(i).at(k) * _matrixToByMultiplyed.getRow(k)->at(j);
+					sum += matrixTable.at(i).at(k) * _matrixToByMultiplyed.getRowPtr(k)->at(j);
 				}
-				newMatrix.getRow(i)->at(j) = sum;
+				newMatrix.getRowPtr(i)->at(j) = sum;
 			}
 		}
 		return newMatrix;
