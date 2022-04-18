@@ -32,3 +32,6 @@ std::vector<Type> operator+(std::vector<Type> _firstVec, std::vector<Type2>  _se
 //Subtracting vectors
 template <typename Type, typename Type2>
 std::vector<Type> operator-(std::vector<Type> _firstVec, std::vector<Type2> _secondVec);
+
+template <typename Type>
+std::size_t getIndexOfMaximalValueInVector(std::vector<Type>& _vec);

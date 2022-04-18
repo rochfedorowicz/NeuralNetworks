@@ -146,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Matrix2D.h" />
+    <ClInclude Include="NeuralNetwork.h" />
     <ClInclude Include="VectorOperands.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

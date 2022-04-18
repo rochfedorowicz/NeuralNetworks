@@ -2,6 +2,7 @@
 #include<vector>
 #include <random>
 #include <iostream>
+#include <algorithm>
 
 //Enum for restricting options of initialization
 enum class ModeOfMaterixInit { ZEROS, RANDOM };

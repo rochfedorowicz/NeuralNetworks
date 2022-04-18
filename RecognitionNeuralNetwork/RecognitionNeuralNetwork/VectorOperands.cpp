@@ -73,3 +73,12 @@ std::vector<Type> operator-(std::vector<Type> _firstVec, std::vector<Type2> _sec
 	}
 	else throw "Exception - attempt to subtract vectors of different sizes";
 }
+
+template <typename Type>
+std::size_t getIndexOfMaximalValueInVector(std::vector<Type>& _vec) {
+	size_t maxValNr = 0;
+	for (int i = 1; i < _vec.size(); ++i) {
+		if (_vec.at(maxValNr) < _vec.at(i)) maxValNr = i;
+	}
+	return maxValNr;
+}
