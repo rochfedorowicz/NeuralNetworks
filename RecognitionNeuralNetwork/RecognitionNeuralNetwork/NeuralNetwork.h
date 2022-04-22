@@ -40,7 +40,7 @@ public:
 	std::vector<Matrix2D<double>> getWeights();
 
 	//Weight's vector setter
-	void setWeights(Matrix2D<double> &_weightsMatrix, int _layer);
+	void setWeights(std::vector<Matrix2D<double>> & _weightsVec);
 
 	//Biases's vector getter
 	std::vector<std::vector<double>> getBiases();

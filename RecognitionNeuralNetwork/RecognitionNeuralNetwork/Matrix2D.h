@@ -10,8 +10,8 @@ enum class ModeOfMaterixInit { ZEROS, RANDOM };
 //Class used to carry mathemtical operations in NeuralNetworks
 template <typename Type> class Matrix2D {
 
-	//Matrix2D is implemented as a vecotr of vector of certain type
-	std::vector<std::vector<Type>> matrixTable;
+//Matrix2D is implemented as a vecotr of vector of certain type
+std::vector<std::vector<Type>> matrixTable;
 
 public:
 	//Default constructor

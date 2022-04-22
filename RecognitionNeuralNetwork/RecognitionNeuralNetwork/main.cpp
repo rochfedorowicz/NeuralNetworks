@@ -6,6 +6,9 @@
 #include "Matrix2D.cpp"
 #include "VectorOperands.cpp"
 
+//TODO Create reader/writer class (IO handler) to make it code more clear
+//TODO Implement a way to read PNG's
+
 template <typename Type> Matrix2D<Type> chunkVector(std::vector<Type>& _vector, std::size_t _nrOfElementsInARow) {
 	std::vector<std::vector<Type>> matrixV;
 	for (std::size_t i = 0, j = 0; i < _vector.size(); ++i, ++j) {
@@ -118,46 +121,74 @@ std::vector<std::pair<std::vector<double>, std::vector<int>>> getPairedTrainngDa
 	return traningSet;
 }
 
-int main() {
-	//auto dataMat = readDataByBytes<int>("outputData.byte", 10);
-	//auto dataMat2 = readDataByBytes<double>("inputData.byte", 784);
-	//auto dataSet = getPairedTrainngData(dataMat2, dataMat);
-	//std::random_shuffle(dataSet.begin(), dataSet.end());
-	//std::vector<std::pair<std::vector<double>, std::vector<int>>> trainingSet =
-	//{ dataSet.begin(), dataSet.begin() + 250 }, testSet = { dataSet.begin() + 250, dataSet.begin() + 270 };
-	NeuralNetwork net({ 784, 30, 10 });
-	net.showStats();
-	//auto w1 = readDataByBytes<double>("weightsLayer1.byte", 30);
-	//auto w2 = readDataByBytes<double>("weightsLayer2.byte", 10);
-	//auto b1 = readDataByBytes<double>("biases.byte", {30, 10});
-	//net.setWeights(w1, 1);
-	//net.setWeights(w2, 2);
-	//net.setBiases(b1);
+//TO_BE_DELETED_FURTHER, Function writing weights and biases down to byte files
+void serializeWeightsAndBiases(NeuralNetwork &_net, std::string _nameOfNetwork) {
+	int index = 1;
+	std::string name, name2;
+	name = name2 = _nameOfNetwork;
+	name.append(" - weightsLayer");
+	name2.append(" - biases.byte");
+	for (auto mat : _net.getWeights()) {
+		auto newName = name;
+		newName.push_back(static_cast<char>(index + 48));
+		newName.append(".byte");
+		writeDataByBytes<double>(mat, newName);
+		++index;
+	}
+	auto biasesTab = _net.getBiases();
+	writeDataByBytes<double>(biasesTab, name2);
+}
 
-	//
-	//int amount = 0, corr = 0;
-	//for (auto& row : dataMat2.getTabel()) {
-	//	auto pred = net.predict(row);
-	//	if (getIndexOfMaximalValueInVector(pred) == getIndexOfMaximalValueInVector(*dataMat.getRowPtr(amount))) corr++;
-	//	amount++;
-	//}
-	//std::cout << corr * 100.0 / amount << " % of correction...";
+//TO_BE_DELETED_FURTHER, Function evaluating dataSet over the given net
+void evaluateDataSet(std::vector<std::pair<std::vector<double>, std::vector<int>>> &_dataSet, NeuralNetwork& _net) {
+	int amount = 0, corr = 0;
+	for (auto& data : _dataSet) {
+		auto pred = _net.predict(data.first);
+		if (getIndexOfMaximalValueInVector(pred) == getIndexOfMaximalValueInVector(data.second)) corr++;
+		amount++;
+	}
+	std::cout << std::endl << corr * 100.0 / amount << " % of correction...\n";
+}
+
+//TO_BE_DELETED_FURTHER, Function reading biases and weights from byte files
+std::pair<std::vector<Matrix2D<double>>, std::vector<std::vector<double>>> deserializeWeightsAndBiases(std::string _nameOfNetwork,
+	std::vector<int> _layerSizes) {
+	std::vector<Matrix2D<double>> rWeights;
+	std::vector<std::vector<double>> rBiases;
+	for (int i = 0; i < _layerSizes.size() - 1; ++i) {
+		auto newName = _nameOfNetwork;
+		newName.append(" - weightsLayer");
+		newName.push_back(static_cast<char>(i + 49));
+		newName.append(".byte");
+		rWeights.push_back(readDataByBytes<double>(newName, _layerSizes.at(i)));
+	}
+	auto newName2 = _nameOfNetwork;
+	newName2.append(" - biases.byte");
+	rBiases = readDataByBytes<double>(newName2, { _layerSizes.begin() + 1, _layerSizes.end() });
+	return {rWeights, rBiases};
+}
+
+int main() {
+	auto dataMat = readDataByBytes<int>("outputData.byte", 10);
+	auto dataMat2 = readDataByBytes<double>("inputData.byte", 784);
+	auto dataSet = getPairedTrainngData(dataMat2, dataMat);
+	std::random_shuffle(dataSet.begin(), dataSet.end());
+	std::vector<std::pair<std::vector<double>, std::vector<int>>> trainingSet =
+	{ dataSet.begin(), dataSet.begin() + 250 }, testSet = { dataSet.begin() + 250, dataSet.begin() + 270 };
+	std::vector<int> layerSizes = { 784, 30, 10 };
+	NeuralNetwork net(layerSizes);
+
+	std::string netName = "NN1";
+	evaluateDataSet(testSet, net);
+	serializeWeightsAndBiases(net, netName);
+	auto readedData = deserializeWeightsAndBiases(netName, layerSizes);
+	net.setWeights(readedData.first);
+	net.setBiases(readedData.second);
+	evaluateDataSet(testSet, net);
+
 	//auto fn = [&]() {net.SGD(trainingSet, 3, 10, 0.1, testSet); };
 	//std::thread th1(fn);
 	//th1.join();
-
-
-	//int index = 1;
-	//std::string name = "weightsLayer";
-	//for (	auto mat : net.getWeights()) {
-	//	auto newName = name;
-	//	newName.push_back(static_cast<char>(index + 48));
-	//	newName.append(".byte");
-	//	writeDataByBytes<double>(mat, newName);
-	//	++index;
-	//}
-	//auto biasesTab = net.getBiases();
-	//writeDataByBytes<double>(Matrix2D<double>(biasesTab), "biases.byte");
 
 	return 0;
 }

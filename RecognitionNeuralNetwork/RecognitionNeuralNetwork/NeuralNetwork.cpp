@@ -39,14 +39,16 @@ void NeuralNetwork::reversActivation(std::vector<double>& _inputVector) {
 
 void NeuralNetwork::showStats() {
 	for (auto& baias : biases) std::cout << baias.size() << " ";
+	std::cout << std::endl;
+	for (auto& weight : weights) std::cout << weight.getRowsNumber() << " x " << weight.getRowPtr(0)->size() << "\n";
 }
 
 std::vector<Matrix2D<double>> NeuralNetwork::getWeights() {
 	return weights;
 }
 
-void NeuralNetwork::setWeights(Matrix2D<double> &_weightsMatrix, int _layer) {
-	if (_layer > 0 && _layer < weights.size()) weights.at(_layer) = _weightsMatrix;
+void NeuralNetwork::setWeights(std::vector<Matrix2D<double>>& _weightsVec) {
+	weights = _weightsVec;
 }
 
 std::vector<std::vector<double>> NeuralNetwork::getBiases() {
