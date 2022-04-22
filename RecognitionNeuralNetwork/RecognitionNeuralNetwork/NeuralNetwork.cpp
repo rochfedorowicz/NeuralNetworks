@@ -37,14 +37,30 @@ void NeuralNetwork::reversActivation(std::vector<double>& _inputVector) {
 	std::for_each(_inputVector.begin(), _inputVector.end(), [this](double& val) {val = this->sygmoidPrimeFn(val); });
 }
 
+void NeuralNetwork::showStats() {
+	for (auto& baias : biases) std::cout << baias.size() << " ";
+}
+
 std::vector<Matrix2D<double>> NeuralNetwork::getWeights() {
 	return weights;
+}
+
+void NeuralNetwork::setWeights(Matrix2D<double> &_weightsMatrix, int _layer) {
+	if (_layer > 0 && _layer < weights.size()) weights.at(_layer) = _weightsMatrix;
+}
+
+std::vector<std::vector<double>> NeuralNetwork::getBiases() {
+	return biases;
+}
+
+void NeuralNetwork::setBiases(std::vector<std::vector<double>>& _biasesTable) {
+	biases = _biasesTable;
 }
 
 std::vector<double> NeuralNetwork::predict(std::vector<double> _inputVector) {
 	std::vector<double> outputVector = _inputVector;
 	for (int i = 0; i < weights.size(); ++i) {
-		outputVector = *(outputVector * weights.at(i).getTransposedMatrix()).getVectorPtr() + biases.at(i);
+		outputVector = (weights.at(i) * outputVector) + biases.at(i);
 		activation(outputVector);
 	}
 	return outputVector;
@@ -65,7 +81,7 @@ std::pair< std::vector<std::vector<double>>, std::vector<Matrix2D<double>>> Neur
 	}
 	std::for_each(weightShapes.begin(), weightShapes.end(), [&](std::pair<int, int>& wS) {newWeights.push_back(Matrix2D<double>(wS.first, wS.second, ModeOfMaterixInit::ZEROS)); });
 	for (int i = 0; i < weights.size(); ++i) {
-		auto z = *(activationVector * weights.at(i).getTransposedMatrix()).getVectorPtr() + biases.at(i);
+		auto z = (weights.at(i) * activationVector) + biases.at(i);
 		zVectros.push_back(z);
 		activation(z);
 		activationVector = z;
@@ -74,13 +90,14 @@ std::pair< std::vector<std::vector<double>>, std::vector<Matrix2D<double>>> Neur
 	reversActivation(zVectros.back());
 	auto delta = (activationsVectors.back() - _inputVector2) ^ zVectros.back();
 	newBiases.back() = delta;
-	newWeights.back() = getTransposedVector(delta) * activationsVectors.at(activationsVectors.size() - 2);
+	newWeights.back() = delta * activationsVectors.at(activationsVectors.size() - 2);
 	for (int i = 2; i < layerSizes.size(); i++) {
 		auto v = zVectros.at(zVectros.size() - i);
 		reversActivation(v);
-		delta = v ^ *(delta * weights.at(weights.size() - i + 1)).getRowPtr(0);
+		auto tempMat = weights.at(weights.size() - i + 1).getTransposedMatrix();
+		delta = (tempMat * delta) ^ v;
 		newBiases.at(newBiases.size() - i) = delta;
-		newWeights.at(newWeights.size() - i) = getTransposedVector(delta) * activationsVectors.at(activationsVectors.size() - i - 1);
+		newWeights.at(newWeights.size() - i) = delta * activationsVectors.at(activationsVectors.size() - i - 1);
 	}
 	return { newBiases, newWeights };
 }
@@ -104,7 +121,7 @@ void NeuralNetwork::updateMiniBatch(std::vector<std::pair<std::vector<double>, s
 			newWeights.at(i) = newWeights.at(i) + result.second.at(i);
 		}
 		for (int i = 0; i < newBiases.size(); ++i) {
-			weights.at(i) = weights.at(i) - newWeights.at(i) > (eta / miniBatch.size());
+			weights.at(i) = weights.at(i) - (newWeights.at(i) > (eta / miniBatch.size()));
 			biases.at(i) = biases.at(i) - (newBiases.at(i) * (eta / miniBatch.size()));
 		}
 	});
@@ -114,7 +131,6 @@ void NeuralNetwork::SGD(std::vector<std::pair<std::vector<double>, std::vector<i
 	double eta, std::vector<std::pair<std::vector<double>, std::vector<int>>>&testData) {
 	for (int i = 0; i < epochs; ++i) {
 		std::random_shuffle(trainingData.begin(), trainingData.end());
-		int n = trainingData.size();
 		std::vector<std::vector<std::pair<std::vector<double>, std::vector<int>>>> miniBatches;
 		for (int j = 0; j < trainingData.size(); j += miniBatchSize) {
 			miniBatches.push_back({ trainingData.begin() + j, trainingData.begin() + j + miniBatchSize - 1 >= trainingData.end() ? trainingData.end() : trainingData.begin() + j + miniBatchSize - 1 });

@@ -1,11 +1,5 @@
 #include "VectorOperands.h"
 
-template <typename Type>
-Matrix2D<Type> getTransposedVector(std::vector<Type>& _vec) {
-	Matrix2D<Type> newMatrix(_vec);
-	return newMatrix.getTransposedMatrix();
-}
-
 template <typename Type, typename Type2>
 std::vector<Type> operator^(std::vector<Type> _firstVec, std::vector<Type2> _secondVec) {
 	if (_firstVec.size() == _secondVec.size()) {
@@ -19,24 +13,36 @@ std::vector<Type> operator^(std::vector<Type> _firstVec, std::vector<Type2> _sec
 }
 
 template <typename Type, typename Type2>
-std::vector<Type> operator*(std::vector<Type> _firstVec, Type2 _scallar) {
+std::vector<Type> operator*(std::vector<Type> _vec, Type2 _scallar) {
 	std::vector<Type> newVec;
-	for (int i = 0; i < _firstVec.size(); ++i) {
-		newVec.push_back(_firstVec.at(i) * _scallar);
+	for (int i = 0; i < _vec.size(); ++i) {
+		newVec.push_back(_vec.at(i) * _scallar);
 	}
 	return newVec;
 }
 
 template <typename Type, typename Type2>
-Matrix2D<Type> operator*(std::vector<Type> _vec, Matrix2D<Type2> _matrix) {
-	Matrix2D<Type> newMat(_vec);
-	return newMat * _matrix;
+Matrix2D<Type> operator*(std::vector<Type> _firstVec, std::vector<Type2> _secondVec) {
+	Matrix2D<Type> newMatrix(_firstVec.size(), _secondVec.size(), ModeOfMaterixInit::ZEROS);
+	for (int i = 0; i < _firstVec.size(); ++i) {
+		for (int j = 0; j < _secondVec.size(); ++j) {
+			newMatrix.getRowPtr(i)->at(j) = _firstVec.at(i) * _secondVec.at(j);
+		}
+	}
+	return newMatrix;
 }
 
 template <typename Type, typename Type2>
-Matrix2D<Type> operator*(Matrix2D<Type> _matrix, std::vector<Type2> _vec) {
-	Matrix2D<Type> newMat(_vec);
-	return _matrix * newMat;
+std::vector<Type> operator*(Matrix2D<Type> _matrix, std::vector<Type2> _vec) {
+	std::vector<double> newVector;
+	for (int i = 0; i < _matrix.getRowsNumber(); ++i) {
+		double outcome = 0;
+		for (int j = 0; j < _matrix.getRowPtr(i)->size(); ++j) {
+			outcome += _matrix.getRowPtr(i)->at(j) * _vec.at(j);
+		}
+		newVector.push_back(outcome);
+	}
+	return newVector;
 }
 
 template <typename Type, typename Type2>

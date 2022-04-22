@@ -20,17 +20,11 @@ public:
 	//Table's constructor
 	Matrix2D(std::vector<std::vector<Type>>& _matrixTable);
 
-	//Vector's constructor
-	Matrix2D(std::vector<Type>& _vectorToConvert);
-
 	//Getter for number of rows
 	int getRowsNumber();
 
 	//Getter for pointer to certain row
 	std::vector<Type>* getRowPtr(int _rowNumber);
-
-	//Getter for vector from matrix
-	std::vector<Type>* getVectorPtr();
 
 	//Performing normalization
 	void normalize();

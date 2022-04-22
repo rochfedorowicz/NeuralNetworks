@@ -30,12 +30,6 @@ Matrix2D<Type>::Matrix2D(std::vector<std::vector<Type>>& _matrixTable) {
 	this->matrixTable = _matrixTable;
 }
 
-template <typename Type>
-Matrix2D<Type>::Matrix2D(std::vector<Type>& _vectorToConvert) {
-	std::vector<std::vector<Type>> newTable({_vectorToConvert});
-	this->matrixTable = newTable;
-}
-
 template <typename Type> 
 int Matrix2D<Type>::getRowsNumber() {
 	return matrixTable.size();
@@ -44,11 +38,6 @@ int Matrix2D<Type>::getRowsNumber() {
 template <typename Type>
 std::vector<Type>* Matrix2D<Type>::getRowPtr(int _rowNumber) {
 	return  &matrixTable.at(_rowNumber);
-}
-
-template <typename Type>
-std::vector<Type>* Matrix2D<Type>::getVectorPtr() {
-	return  &matrixTable.at(0);
 }
 
 template <typename Type> 

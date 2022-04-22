@@ -1,6 +1,7 @@
 #pragma once
 #include "Matrix2D.h"
 
+//Class used to represent Neural Network
 class NeuralNetwork {
 
 	//Sizes of layers in network
@@ -32,8 +33,20 @@ public:
 	//Default constructor
 	NeuralNetwork(std::vector<int> _layerSizes);
 
+	//Shows overall statistics of network
+	void showStats();
+
 	//Weight's vector getter
 	std::vector<Matrix2D<double>> getWeights();
+
+	//Weight's vector setter
+	void setWeights(Matrix2D<double> &_weightsMatrix, int _layer);
+
+	//Biases's vector getter
+	std::vector<std::vector<double>> getBiases();
+
+	//Biases's vector setter
+	void setBiases(std::vector<std::vector<double>> &_biasesTable);
 
 	//Function used to calculate a single network ouput(response) from a single input
 	std::vector<double> predict(std::vector<double> _inputVector);
