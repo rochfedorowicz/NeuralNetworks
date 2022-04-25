@@ -2,6 +2,8 @@
 #include <sstream>
 #include <thread>
 
+#include <SFML/Graphics.hpp>
+
 #include "NeuralNetwork.h"
 #include "Matrix2D.cpp"
 #include "VectorOperands.cpp"
@@ -169,26 +171,62 @@ std::pair<std::vector<Matrix2D<double>>, std::vector<std::vector<double>>> deser
 }
 
 int main() {
-	auto dataMat = readDataByBytes<int>("outputData.byte", 10);
-	auto dataMat2 = readDataByBytes<double>("inputData.byte", 784);
-	auto dataSet = getPairedTrainngData(dataMat2, dataMat);
-	std::random_shuffle(dataSet.begin(), dataSet.end());
-	std::vector<std::pair<std::vector<double>, std::vector<int>>> trainingSet =
-	{ dataSet.begin(), dataSet.begin() + 250 }, testSet = { dataSet.begin() + 250, dataSet.begin() + 270 };
+	//auto dataMat = readDataByBytes<int>("outputData.byte", 10);
+	//auto dataMat2 = readDataByBytes<double>("inputData.byte", 784);
+	//auto dataSet = getPairedTrainngData(dataMat2, dataMat);
+	//std::random_shuffle(dataSet.begin(), dataSet.end());
+	//std::vector<std::pair<std::vector<double>, std::vector<int>>> trainingSet =
+	//{ dataSet.begin(), dataSet.begin() + 47000 }, testSet = { dataSet.begin() + 47000, dataSet.end()};
+	//std::vector<int> layerSizes = { 784, 30, 10 };
+	//std::string netName = "NN3", netName2 = "NN4";
+	//NeuralNetwork net(layerSizes);
+	//auto fn = [&dataMat2](int j) {
+	//	int i = 0;
+	//	for (auto& val : *dataMat2.getRowPtr(j)) {
+	//		if (i == 28) {
+	//			std::cout << "\n";
+	//			i = 0;
+	//		}
+	//		std::cout << ((int)(round(val * 10)) > 0 ? 1 : 0) << " ";
+	//		i++;
+	//	}
+	//};
+
+	sf::Image img;
+	img.loadFromFile("image.png");
+	std::vector<double> vec;
+	for (int i = 0; i < img.getSize().x; ++i) {
+		for (int j = 0; j < img.getSize().y; ++j) {
+			std::cout << 1 - (img.getPixel(j, i).r + img.getPixel(j, i).g + img.getPixel(j, i).b) / 3 / 255 << " ";
+			vec.push_back(1 - (img.getPixel(j, i).r + img.getPixel(j, i).g + img.getPixel(j, i).b) / 3 / 255.0);
+		}
+		std::cout << "\n";
+	}
 	std::vector<int> layerSizes = { 784, 30, 10 };
 	NeuralNetwork net(layerSizes);
+	auto data = deserializeWeightsAndBiases("NN4", layerSizes);
+	net.setWeights(data.first);
+	net.setBiases(data.second);
+	std::cout << "\n";
+	auto prediction = net.predict(vec);
+	std::cout << getIndexOfMaximalValueInVector<double>(prediction) << std::endl;
+	//for (int i = 0; i < 30; ++i) {
+	//	fn(i);
+	//	auto prediction = net.predict(*dataMat2.getRowPtr(i));
+	//	std::cout << getIndexOfMaximalValueInVector<double>(prediction) << std::endl;
+	//}
 
-	std::string netName = "NN1";
-	evaluateDataSet(testSet, net);
-	serializeWeightsAndBiases(net, netName);
-	auto readedData = deserializeWeightsAndBiases(netName, layerSizes);
-	net.setWeights(readedData.first);
-	net.setBiases(readedData.second);
-	evaluateDataSet(testSet, net);
 
-	//auto fn = [&]() {net.SGD(trainingSet, 3, 10, 0.1, testSet); };
+	//auto readedData = deserializeWeightsAndBiases(netName, layerSizes);
+	//net.setWeights(readedData.first);
+	//net.setBiases(readedData.second);
+	//evaluateDataSet(testSet, net);
+
+	//auto fn = [&]() {net.SGD(trainingSet, 10, 100, 0.01, testSet); };
 	//std::thread th1(fn);
 	//th1.join();
+
+	//serializeWeightsAndBiases(net, netName2);
 
 	return 0;
 }
